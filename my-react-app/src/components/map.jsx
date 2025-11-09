@@ -21,7 +21,7 @@ const Map = () => {
       {buttons.map((btn) => (
         <button
           key={btn.id}
-          className={`absolute rounded-full ${btn.color} ${btn.size} opacity-80 hover:opacity-100`}
+          className={`absolute rounded-full ${btn.color} ${btn.size} opacity-80 hover:color-pink`}
           style={{ top: btn.top, left: btn.left }}
           onClick={() => alert(`Clicked button ${btn.id}`)}
         />
