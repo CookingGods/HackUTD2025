@@ -21,3 +21,151 @@
   background-color: #c50063;
   transform: scale(1.05);
 }
+
+.topic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2%;
+}
+
+.dashboard-container {
+  position: fixed;
+  right: 0;
+  top: 2%;
+  bottom: 0;
+  width: 70%;
+  background: #FAFFFC;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 25px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+  height: 200px;
+}
+
+.filter-buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap; 
+  gap: 15px; 
+  width: 100%; 
+  justify-content: space-evenly;
+}
+
+.filter-btn {
+  border: none;
+  background: none;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  color: black;
+  font-size: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  position: relative;
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+}
+
+.dashboard-top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.satisfaction-gauge {
+  background: white;
+  padding: 2rem;
+  border-radius: 25px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  height: 250px;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+}
+
+
+.trending-section {
+  background: white;
+  padding: 2rem;
+  border-radius:25px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  height: 250px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trending-label {
+  display: block;
+  font-size: 20px;
+  font-weight: bold;
+  color: black;
+  margin-bottom: 0.5rem;
+}
+
+.trending-title {
+  margin: 0;
+  font-size: 40px;
+  color: black;
+}
+
+.chat-section {
+  background: white;
+  padding: 3rem;
+  border-radius: 25px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  position: relative;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sentiment-filters {
+  display: flex;
+  gap: 40px;
+  align-items: center; 
+}
+
+.sentiment-filters label {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.sentiment-filters input {
+  margin-right: 5px; 
+}
+
+.sentiment-filters input[type="checkbox"] {
+  appearance: none; 
+  width: 20px;
+  height: 18px;
+  border: 2px solid #E20074; 
+  background-color: transparent; 
+  cursor: pointer;
+  position: relative;
+  border-radius: 4px;
+}
+
+.sentiment-filters input[type="checkbox"]:checked {
+  background-color: #E20074; 
+}
+
