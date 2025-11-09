@@ -23,8 +23,8 @@ const Home = () => {
   };
 
   const trendingTopics = [
-    "Newest Bug",
-    "Cost of Product",
+    "coverage",
+    "Billing",
     "Best Phone for T-Mobile",
     "Lowest Cost Plan",
     "2025 vs 2024 Phone",

@@ -5,15 +5,14 @@ import Header from "./components/Header.jsx";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
-    return (
-        <Router>
-            <Header />
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/topics/:topicName" element={<Topic />} />
-            </Routes>
-        </Router>
-    );
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/topics/:topicName" element={<Topic />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;
