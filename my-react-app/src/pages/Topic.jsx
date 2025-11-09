@@ -18,16 +18,14 @@ const Topic = () => {
       try {
         const response = await fetch('/reddit_text.csv');
         const csvText = await response.text();
-        
+
         Papa.parse(csvText, {
           header: true,
           complete: (results) => {
-            //Sort posts by date
             const sortedPosts = results.data
-              //Remove empty posts
-              .filter(post => post.text && post.text.trim() !== '') 
-              //Sort newest to oldest
+              .filter(post => post.text && post.text.trim() !== '' && post.title) // remove empty text/title
               .sort((a, b) => new Date(b.date) - new Date(a.date));
+
             setPosts(sortedPosts);
           },
           error: (error) => {
@@ -42,25 +40,39 @@ const Topic = () => {
     loadCSV();
   }, []);
 
+  // Filter posts to only include those that contain the trending topic in title or text
+  const filteredPosts = posts.filter(post =>
+    post.title.toLowerCase().includes(decodedTopic.toLowerCase()) ||
+    post.text.toLowerCase().includes(decodedTopic.toLowerCase())
+  );
+
   return (
     <div className="topic-container">
       <div className="topic-header">
         <button className="back-button" onClick={handleBack}>Back</button>
-        <h1>{decodedTopic}</h1>
+        <div className="topic-title-container">
+          <h1 className="topic-title">{decodedTopic}</h1>
+        </div>
       </div>
+
       <div className="bubbles-container">
-        {posts.map((post, index) => (
-          <div key={index} className="bubble">
-            <div className="bubble-source">
-                <img src="/src/Logos/reddit_logo.png" alt="Logo" />
+        {filteredPosts.length > 0 ? (
+          filteredPosts.map((post, index) => (
+            <div key={index} className="bubble">
+              <div className="bubble-source">
+                {post.url.toLowerCase().includes("reddit") && (
+                  <img src="/src/Logos/reddit_logo.png" alt="Reddit Logo" />
+                )}
+              </div>
+              <p className="bubble-text">{post.text}</p>
+              <span className="bubble-date">
+                {new Date(post.date).toLocaleDateString()}
+              </span>
             </div>
-            <p className="bubble-text">{post.text}</p>
-            <span className="bubble-date">{new Date(post.date).toLocaleDateString()}</span>
-          </div>
-        ))}
-      </div>
-      <div className="main-content">
-        {/* Additional content can go here */}
+          ))
+        ) : (
+          <p>No posts found for this topic.</p>
+        )}
       </div>
     </div>
   );

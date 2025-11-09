@@ -7,8 +7,8 @@ const Home = () => {
   const navigate = useNavigate();
 
   const trendingTopics = [
-    "Newest Bug",
-    "Cost of Product",
+    "Weeks",
+    "Deal",
     "Best Phone for T-Mobile",
     "Lowest Cost Plan",
     "2025 vs 2024 Phone",
