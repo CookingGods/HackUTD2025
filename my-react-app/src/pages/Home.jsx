@@ -152,7 +152,8 @@ const Home = () => {
             height: "100px",
             width: "100%",
             left: "30%",
-            bottom: "10px"
+            bottom: "10px",
+            minWidth: "400px"
           }}
         >
           <Map loadCSV={loadCSV} />

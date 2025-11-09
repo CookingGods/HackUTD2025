@@ -5,8 +5,7 @@ import "./Topic.css";
 import Chatbot from '../components/chatbot';
 
 const getGaugeOffset = (percent) => {
-  const circumference = 282.74; // Calculated for r=45 (2 * pi * 45)
-  // The offset is the *unfilled* part of the circle
+  const circumference = 282.74; 
   return circumference * (1 - (percent / 100));
 };
 
@@ -196,9 +195,6 @@ const Topic = () => {
             </div>
           </div>
           
-          <h1 className="text-3xl font-bold text-center mb-4 text-gray-800">
-            T-Mobile Feedback
-          </h1>
           <div style={{
             height: "100%",
             width: "100%",

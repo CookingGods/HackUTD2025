@@ -5,9 +5,7 @@ const Header = () => {
     return (
         <header className="main-header">
             <div className="header-content">
-                {/* Placeholder for left-side content */}
                 <div className="header-left"></div>
-                {/* T-Mobile Logo and branding in the corner */}
                 <div className="header-logo">
                     <div className="header-branding">
                         <div className="header-title">

@@ -11,7 +11,6 @@ import {
 } from "recharts";
 
 const TrendingChart = ({ posts }) => {
-  // Memoize top topics calculation
   const topTopics = useMemo(() => {
     if (!posts || !Array.isArray(posts)) return [];
 
@@ -36,7 +35,6 @@ const TrendingChart = ({ posts }) => {
     }, {})
   );
 
-  // Update activeLines when topTopics change
   React.useEffect(() => {
     setActiveLines(
       topTopics.reduce((acc, topic) => {
@@ -46,14 +44,12 @@ const TrendingChart = ({ posts }) => {
     );
   }, [topTopics]);
 
-  // Optimized chart data with all topics starting from 0
   const chartData = useMemo(() => {
     if (!posts || posts.length === 0) return [];
 
     const grouped = {};
     const allMonths = new Set();
 
-    // First pass: collect all months and group data
     posts.forEach((post) => {
       if (!post.date || !post.topic_name) return;
 
@@ -71,14 +67,11 @@ const TrendingChart = ({ posts }) => {
       grouped[monthKey][topic] = (grouped[monthKey][topic] || 0) + 1;
     });
 
-    // Sort all months
     const sortedMonths = Array.from(allMonths).sort();
 
-    // Second pass: create complete dataset with 0 values for missing data
     return sortedMonths.map((monthKey) => {
       const monthData = { date: monthKey };
 
-      // Initialize all top topics with 0
       topTopics.forEach((topic) => {
         monthData[topic] = grouped[monthKey]?.[topic] || 0;
       });
@@ -102,7 +95,6 @@ const TrendingChart = ({ posts }) => {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      // Filter out zero values for cleaner tooltip
       const nonZeroPayload = payload.filter((item) => item.value > 0);
 
       if (nonZeroPayload.length === 0) return null;

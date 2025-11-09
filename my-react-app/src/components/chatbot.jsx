@@ -74,7 +74,7 @@ function Chatbot() {
       className={`my-2 p-3 rounded-lg max-w-lg ${
         role === "user"
           ? "bg-blue-600 text-white self-end"
-          : "bg-gray-200 text-gray-900 self-start"
+          : " self-start"
       }`}
     >
       {content}
@@ -82,13 +82,13 @@ function Chatbot() {
   );
 
   return (
-    <div className="flex flex-col h-full max-w-3xl mx-auto p-4 font-sans overflow-hidden">
+    <div className="flex flex-col h-full max-w-3xl mx-auto p-4 font-sans overflow-hidden min-w-[800px]">
       <div
         className="flex-grow flex flex-col overflow-y-auto p-4 bg-white rounded-lg shadow-inner border border-gray-200"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "#CBD5E0 #F7FAFC",
-          minHeight: 0, // ensures the flex child can shrink for scroll
+          minHeight: 0, 
         }}
       >
         {messages.slice(1).map((msg, index) => (

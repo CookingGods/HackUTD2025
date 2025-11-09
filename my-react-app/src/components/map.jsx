@@ -3,7 +3,6 @@ import mapImage from "../assets/map.png";
 import "./Map.css";
 
 const buttons = [
-  // --- FIX: Changed id from 1 to 0 to be unique ---
   { 
     id: 0, 
     region: "All", 

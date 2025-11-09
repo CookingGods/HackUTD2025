@@ -23,10 +23,10 @@ def get_chat_response(client: OpenAI, messages: List[Dict[str, str]]) -> str:
     try:
         response = client.chat.completions.create(
             model="qwen/qwen3-next-80b-a3b-instruct",
-            messages=messages,
-            temperature=0.7,
-            top_p=1.0,
-            max_tokens=1024,
+            messages=messages[-5:], 
+            temperature=0.3,
+            top_p=0.9,
+            max_tokens=128,
         )
         
         if response.choices and response.choices[0].message:

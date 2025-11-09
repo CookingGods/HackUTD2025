@@ -16,10 +16,10 @@ if isinstance(client, str):
     exit()
 
 
-with open('../tmobile_reviews_labeled.csv', 'r', encoding='utf-8') as f:
-    csv_data = f.read()
+df = pd.read_csv("../tmobile_reviews_labeled.csv")
+sampled = df.sample(n=10, random_state=42) 
 
-data_string = json.dumps(csv_data, indent=2)
+data_string = json.dumps(sampled.to_dict(orient="records"), indent=2)
 
 system_prompt = (
     "You are a T-Mobile internal assistant designed to assist T-Mobile "
@@ -77,35 +77,28 @@ def handle_filter_request():
         return jsonify({"status": "error", "message": "No 'region' parameter provided."}), 400
         
     try:
-        # Run the main filtering function
         message = filter_and_save_by_region(region_name)
         
-        # If it returns without error, it was a success
         return jsonify({"status": "success", "message": message})
         
     except FileNotFoundError as e:
-        # The 'tmobile_reviews_labeled.csv' wasn't found
-        print(f"ERROR: File not found: {e}") # For your console
+        print(f"ERROR: File not found: {e}")
         return jsonify({"status": "error", "message": f"Data file not found: {e.filename}"}), 404
         
     except KeyError as e:
-        # This will catch the "Missing 'Location' column" error
-        print(f"ERROR: CSV data is missing a required column: {e}") # For your console
+        print(f"ERROR: CSV data is missing a required column: {e}")
         return jsonify({"status": "error", "message": f"CSV data error. Missing required column: {e}"}), 400
 
     except ValueError as e:
-        # This will catch the "Region not found" error we raised
-        print(f"ERROR: Value error: {e}") # For your console
+        print(f"ERROR: Value error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 400
 
     except PermissionError as e:
-        # The app doesn't have rights to write 'filtered_data.csv'
-        print(f"ERROR: Permission denied: {e}") # For your console
+        print(f"ERROR: Permission denied: {e}")
         return jsonify({"status": "error", "message": f"Server permission error: Cannot write file. {e}"}), 500
         
     except Exception as e:
-        # The REAL "catch-all" for any other unexpected crash
-        print(f"ERROR: An unexpected server error occurred: {e}") # For your console
+        print(f"ERROR: An unexpected server error occurred: {e}")
         return jsonify({"status": "error", "message": f"An unexpected server error occurred: {e}"}), 500
     
 
@@ -118,19 +111,13 @@ def get_filtered_data_for_graphs():
     its contents as JSON, ready to be used by charts.
     """
     try:
-        # Read the pre-filtered data
         df = pd.read_csv('filtered_data.csv')
-        
-        # Convert the DataFrame to JSON in an 'records' orientation
-        # (a list of objects), which is great for charting libraries.
         data_json = df.to_json(orient='records')
         
-        # We parse the JSON string back into an object to return clean JSON
         import json
         return jsonify(json.loads(data_json))
         
     except FileNotFoundError:
-        # This happens if /filter hasn't been called yet
         return jsonify({"error": "No filtered data found. Please select a region first."}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
