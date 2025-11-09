@@ -51,13 +51,10 @@ const Home = () => {
     }
   };
 
-  // Initial load
   loadCSV();
 
-  // Refresh every 5 seconds
   const interval = setInterval(loadCSV, 500);
 
-  // Cleanup interval when component unmounts
   return () => clearInterval(interval);
 }, []);
 
@@ -65,46 +62,26 @@ const Home = () => {
 
 
   const trendingTopics = React.useMemo(() => {
-    // 1. Create an object to hold the counts
     const topicCounts = {};
 
-    // 2. Loop over all posts and count by topic_name
     for (const post of posts) {
-      const topicId = post.topic_name; // Your parser makes this lowercase
+      const topicId = post.topic_name; 
       
       if (topicId) {
-        // Add to the count for this topic_name, or initialize it to 1
         topicCounts[topicId] = (topicCounts[topicId] || 0) + 1;
       }
     }
 
-    // 3. Convert the counts object into an array
-    // From: { topic_A: 10, topic_B: 5 }
-    // To: [ ['topic_A', 10], ['topic_B', 5] ]
     const countsArray = Object.entries(topicCounts);
 
-    // 4. Sort the array by count (the second item, index 1) in descending order
     countsArray.sort((a, b) => b[1] - a[1]);
 
-    // 5. (Optional) Map to a cleaner object format
-    // From: [ ['topic_A', 10], ['topic_B', 5] ]
-    // To: [ {topic_name: 'topic_A', count: 10}, {topic_name: 'topic_B', count: 5} ]
     return countsArray.map(([topic_name, count]) => ({
       topic_name: topic_name,
       count: count
     }));
 
   }, [posts]);
-
-  // const trendingTopics = [
-  //   "Newest Bug",
-  //   "Cost of Product",
-  //   "Best Phone for T-Mobile",
-  //   "Lowest Cost Plan",
-  //   "2025 vs 2024 Phone",
-  //   "School not allowing school",
-  //   "Lowest Plan",
-  // ];
 
   return (
     <div className="home-body">
@@ -114,51 +91,36 @@ const Home = () => {
             key={index}
             onMouseEnter={() => setHovered(index)}
             onMouseLeave={() => setHovered(null)}
-            // FIX 1: Use topic.topic_name for the navigation URL
+
             onClick={() => navigate(`/topics/${encodeURIComponent(topic.topic_name)}`)}
             className={`trending-box ${hovered === index ? "hovered" : ""}`}
           >
             <div style={{ fontWeight: 'normal', opacity: 0.7 }}>{index + 1} - Trending</div>
-            
-            {/* FIX 2: Render the topic_name property, not the whole object */}
             <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{topic.topic_name}</div>
-
-            {/* Optional: You could also show the count */}
-            {/* <div style={{ opacity: 0.8 }}>Count: {topic.count}</div> */}
           </button>
         ))}
       </aside>
 
       <main className="home-main">
 
-        {/* 1. Line Chart Placeholder */}
         <div className="dashboard-item chart-container">
           <p style={{ marginBottom: 'auto', fontWeight: 'bold' }}>Line Chart Data (2014 - 2020)</p>
           <div style={{ width: '100%', height: '80%', backgroundColor: '#f0f0f0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            {/* Chart Visualization Placeholder */}
           </div>
         </div>
 
-        {/* 2. Animated Percentage Gauge (Feature 1) */}
         <div className="dashboard-item gauge-container">
           <p style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>Satisfaction Rate</p>
           <svg width="150" height="150" viewBox="0 0 100 100">
-            <circle
-              cx="50" cy="50" r="45"
-              fill="none" stroke="#eee" strokeWidth="10"
-              strokeDasharray="210px" 
-              transform="rotate(-225 50 50)"
-            />
 
-            {/* Foreground Arc - Green (Animated) */}
             <circle
               cx="50" cy="50" r="45"
               className="gauge-arc"
               style={{
-                stroke: '#00cc66', // Green color from image
-                strokeDashoffset: getGaugeOffset(gaugePercent), // Controlled by state for animation
-                transition: 'stroke-dashoffset 2s ease-out', // Smooth transition for animation
-                transform: 'rotate(-225deg)', // Start from bottom-left, same as background
+                stroke: '#00cc66', 
+                strokeDashoffset: getGaugeOffset(gaugePercent), 
+                transition: 'stroke-dashoffset 2s ease-out', 
+                transform: 'rotate(-225deg)', 
                 transformOrigin: '50% 50%',
                 strokeDasharray: "282.74px"
               }}
@@ -167,7 +129,6 @@ const Home = () => {
           </svg>
         </div>
 
-        {/* 3. Simple US Map Placeholder (Feature 3) */}
         <div style={{padding: "5px"}} className="dashboard-item map-container">
           <Map />
         </div>
