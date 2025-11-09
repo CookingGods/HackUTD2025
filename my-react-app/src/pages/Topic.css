@@ -1,23 +1,103 @@
+body {
+    background-color: white;
+    color: black;
+}
 .topic-container {
-  position: relative; /* ensures children with absolute positioning are relative to this container */
-  padding: 2rem; /* optional, for spacing */
+  min-height: 100vh;
+  padding: 2%;
+  position: relative;
+}
+
+.topic-title {
+  position: fixed;
+  top: 5%;
+  left: 35%;
+  margin: 0;
+  z-index: 100;
+}
+
+.bubbles-container {
+  position: fixed;
+  left: 5%;
+  top: 15%;
+  width: 25%;
+  bottom: 5%;
+  overflow-y: auto;
+  padding-right: 2%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: white;
+  border-radius: 25px;
+}
+
+.bubble {
+  background-color: white;
+  border-radius: 15px;
+  padding: 4%;
+  margin: 5% 0% 0% 5%;
+  box-shadow: 50px 50px 50px 50px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  position: relative;
+}
+
+.bubble:hover {
+  transform: translateX(2%);
+}
+
+.bubble-source {
+  color: #e20074;
+  font-size: 40%;
+  font-weight: 600;
+  margin-bottom: 2%;
+  margin-left: 5%;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+reddit_logo.png {
+  width: 20px;
+  height: 20px;
+}
+
+.bubble-text {
+  margin: 0 0 4% 0;
+  line-height: 1.5;
+  color: #333;
+}
+
+.bubble-date {
+  position: absolute;
+  bottom: 4%;
+  right: 4%;
+  font-size: 75%;
+  color: #666;
 }
 
 .back-button {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background-color: #e20074; /* T-Mobile pink */
+  position: fixed;
+  top: 2%;
+  left: 2%;
+  background-color: #e20074;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 1% 2%;
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
   transition: all 0.2s ease;
+  z-index: 100;
 }
 
 .back-button:hover {
   background-color: #c50063;
   transform: scale(1.05);
 }
+
+.topic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2%;
+}
+
