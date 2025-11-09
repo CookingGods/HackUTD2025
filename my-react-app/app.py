@@ -43,49 +43,28 @@ REGIONS = {
 }
 
 def filter_and_save_by_region(region_name, 
-                             input_file='tmobile_reviews_labeled.csv', 
+                             input_file='../tmobile_reviews_labeled.csv', 
                              output_file='filtered_data.csv'):
-    """
-    Filters the main CSV file by a defined region and saves the result.
-    RAISES an exception if something goes wrong.
-    """
-    # Load the full dataset (can raise FileNotFoundError)
     df = pd.read_csv(input_file)
     
-    # --- START: ADDED DATA CLEANING ---
-    
-    # 1. Check if 'Location' column even exists
+    if region_name == "All":
+        df.to_csv(output_file, index=False)
+        return f"Selected 'All'. Found {len(df)} records."
+
     if 'location' not in df.columns:
         raise KeyError("The CSV file is missing the 'location' column.")
         
-    # 2. Silently drop/skip rows that have no Location data
     df.dropna(subset=['location'], inplace=True)
     
-    # 3. Force the Location column to be a string to prevent errors
-    #    This will handle numbers or other non-string data.
-    #    The .str.split().str[1] part will now safely return 'None'
-    #    for malformed strings (e.g., "Chicago"), which get skipped later.
     df['state'] = df['location'].astype(str).str.split(', ').str[1]
     
-    # --- END: ADDED DATA CLEANING ---
-
-    
-    # Get the list of states for the requested region
     states_to_filter = REGIONS.get(region_name)
     
     if not states_to_filter:
-        # If the region is unknown, raise a ValueError
         raise ValueError(f"Region '{region_name}' not found in REGIONS map.")
-    
-    # Filter the DataFrame
-    # Rows where 'State' is None (from "Chicago" or "123")
-    # will not be in 'states_to_filter' and are automatically skipped.
+
     filtered_df = df[df['state'].isin(states_to_filter)].copy()
-    
-    # Save the filtered data (can raise PermissionError)
     filtered_df.to_csv(output_file, index=False)
-    
-    # Return a success message
     return f"Filtered for {region_name}. Found {len(filtered_df)} records."
 
 

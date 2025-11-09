@@ -5,6 +5,8 @@ import "./Topic.css";
 
 const Topic = () => {
   const { topicName } = useParams();
+  const location = useLocation();
+  const { trendingIndex, trendingTopics, region } = location.state || { trendingIndex: 1, trendingTopics: [] };
   const decodedTopic = decodeURIComponent(topicName);
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('Sentiment');
@@ -19,23 +21,21 @@ const Topic = () => {
   useEffect(() => {
     const loadCSV = async () => {
       try {
-        const response = await fetch('/reddit_tmobile_clean.csv');
+        const response = await fetch('/filtered_data.csv');
+        if (!response.ok) {
+          console.error('Filtered CSV not found:', response.status, response.statusText);
+          return;
+        }
         const csvText = await response.text();
 
         Papa.parse(csvText, {
           header: true,
           complete: (results) => {
-            const sortedPosts = results.data
-              .filter(post => (post.text && post.text.trim() !== '') || (post.title && post.title.trim() !== '')) // remove empty text/title
-              .sort((a, b) => {
-                // Handle date sorting - try to parse dates, fallback to 0 if invalid
-                const dateA = a.date ? new Date(a.date) : new Date(0);
-                const dateB = b.date ? new Date(b.date) : new Date(0);
-                return isNaN(dateB.getTime()) ? 0 : (dateB.getTime() - dateA.getTime());
-              });
+            const cleanedPosts = results.data
+              .filter(post => post && post.text && post.text.trim() !== '')
+              .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            setPosts(sortedPosts);
-            setLoading(false);
+            setPosts(cleanedPosts);
           },
           error: (error) => {
             console.error('Error parsing CSV:', error);
@@ -51,34 +51,20 @@ const Topic = () => {
     loadCSV();
   }, []);
 
-  const handleBack = () => {
-    navigate('/');
-  };
-
-  // Filter posts to only include those that contain the trending topic in title or text
-  const filteredPosts = posts.filter(post =>
-    post.title?.toLowerCase().includes(decodedTopic.toLowerCase()) ||
-    post.text?.toLowerCase().includes(decodedTopic.toLowerCase())
-  );
-
-  // Determine source from CSV data (default to reddit if source field doesn't exist)
-  const getSource = (post) => {
-    if (post.source) {
-      return post.source.toLowerCase();
-    }
-    // Default to reddit since file is reddit_text.csv
-    return 'reddit';
-  };
-
-  // Get display text (prefer text field, fallback to title)
-  const getDisplayText = (post) => {
-    return post.text || post.title || '';
-  };
-
-  const filters = ['Sentiment', 'Source', 'Likes', 'Newest'];
-
-  // Get trending topic number (mock - in real app, this would come from data)
-  const trendingNumber = 2;
+  // Filter and sort posts
+  const filteredPosts = posts
+    .filter(post => post.topic_name.toLowerCase() === decodedTopic.toLowerCase())
+    .filter(post => region ? post.region && post.region.toLowerCase() === region.toLowerCase() : true) // Filter by region if provided
+    .filter(post => sentimentFilter[post.sentiment?.toLowerCase()] ?? true)
+    .sort((a, b) => {
+      if (sortKey === "likes") {
+        return Number(b.thanks || 0) - Number(a.thanks || 0);
+      }
+      if (sortKey === "newest") {
+        return new Date(b.date) - new Date(a.date);
+      }
+      return 0;
+    });
 
   return (
     <div className="topic-container">
@@ -128,15 +114,36 @@ const Topic = () => {
             ←
           </button>
           <div className="filter-buttons">
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                className={`filter-btn ${activeFilter === filter ? 'active' : ''}`}
-                onClick={() => setActiveFilter(filter)}
-              >
-                {filter}
-              </button>
-            ))}
+            <button
+              className={`filter-btn ${sortKey === "likes" ? "active" : ""}`}
+              onClick={() => setSortKey("likes")}
+            >
+              Likes
+            </button>
+            <button
+              className={`filter-btn ${sortKey === "newest" ? "active" : ""}`}
+              onClick={() => setSortKey("newest")}
+            >
+              Newest
+            </button>
+            <div className="sentiment-filters">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={sentimentFilter.positive}
+                  onChange={() => handleSentimentChange("positive")}
+                />
+                Positive Sentiment
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={sentimentFilter.negative}
+                  onChange={() => handleSentimentChange("negative")}
+                />
+                Negative Sentiment
+              </label>
+            </div>
           </div>
         </div>
 
@@ -146,33 +153,7 @@ const Topic = () => {
           <div className="dashboard-top-row">
             {/* Satisfaction Gauge */}
             <div className="satisfaction-gauge">
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>Satisfaction Rate - Jun 2023</h3>
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
-                <svg width="200" height="120" viewBox="0 0 200 120">
-                  <path
-                    d="M 30 100 A 70 70 0 0 1 170 100"
-                    fill="none"
-                    stroke="#e0e0e0"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 30 100 A 70 70 0 0 1 170 100"
-                    fill="none"
-                    stroke="#00cc66"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                    strokeDasharray="220"
-                    strokeDashoffset={220 - (gaugePercent / 100) * 220}
-                    style={{
-                      transition: 'stroke-dashoffset 2s ease-out',
-                    }}
-                  />
-                  <text x="100" y="85" textAnchor="middle" fontSize="32" fontWeight="bold" fill="#222">
-                    {gaugePercent.toFixed(1)}%
-                  </text>
-                </svg>
-              </div>
+              {/* Add satisfaction gauge */}
             </div>
 
             {/* Trending Section */}
@@ -184,58 +165,7 @@ const Topic = () => {
 
           {/* Chat Section */}
           <div className="chat-section">
-            <div style={{ textAlign: 'center', width: '100%' }}>
-              <div style={{ marginBottom: '1rem', fontSize: '1rem', color: '#333' }}>
-                Hey — can you clarify what you mean by "stuff"? Want me to list or help with something specific?
-              </div>
-              <div style={{
-                display: 'inline-block',
-                backgroundColor: '#f0f0f0',
-                padding: '0.5rem 1rem',
-                borderRadius: '15px',
-                marginBottom: '2rem',
-                fontSize: '0.9rem',
-                color: '#333'
-              }}>
-                why jake is so fucking dumb
-              </div>
-              <div style={{
-                display: 'flex',
-                gap: '0.5rem',
-                maxWidth: '500px',
-                margin: '0 auto',
-                alignItems: 'center'
-              }}>
-                <input
-                  type="text"
-                  placeholder="Ask anything"
-                  style={{
-                    flex: 1,
-                    padding: '0.75rem 1rem',
-                    border: '1px solid #ddd',
-                    borderRadius: '25px',
-                    fontSize: '1rem',
-                    outline: 'none'
-                  }}
-                />
-                <button style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  backgroundColor: '#e20074',
-                  border: 'none',
-                  color: 'white',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M10 15L10 5M10 5L5 10M10 5L15 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+            {/* Chat section here */}
           </div>
         </div>
       </div>
