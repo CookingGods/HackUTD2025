@@ -1,0 +1,23 @@
+.topic-container {
+  position: relative; /* ensures children with absolute positioning are relative to this container */
+  padding: 2rem; /* optional, for spacing */
+}
+
+.back-button {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: #e20074; /* T-Mobile pink */
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #c50063;
+  transform: scale(1.05);
+}
