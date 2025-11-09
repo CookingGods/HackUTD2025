@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import "./Home.css";
+import "./Topic.css"; // FIXED: Changed import from "./Home.css" to "./Topic.css"
 
 const Topic = () => {
   const { topicName } = useParams();
