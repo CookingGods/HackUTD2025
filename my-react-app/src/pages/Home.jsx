@@ -35,19 +35,31 @@ const Home = () => {
   return (
     <div className="home-body">
       <aside className="home-sidebar">
-        {trendingTopics.map((topic, index) => (
-          <button
-            key={index}
-            onMouseEnter={() => setHovered(index)}
-            onMouseLeave={() => setHovered(null)}
-            onClick={() => navigate(`/topics/${encodeURIComponent(topic)}`)}
-            className={`trending-box ${hovered === index ? "hovered" : ""}`}
-          >
-            {/* Added index and "Trending" text */}
-            <div style={{ fontWeight: 'normal', opacity: 0.7 }}>{index + 1} - Trending</div>
-            <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{topic}</div>
-          </button>
-        ))}
+        <div className="sidebar-header">
+          <div className="sidebar-branding">
+            <span className="sidebar-tmobile-text">T - Mobile</span>
+            <span className="sidebar-dashboard-text">Dashboard</span>
+          </div>
+          <div className="sidebar-powered-by">Powered By NVIDIA</div>
+        </div>
+        <div className="trending-topics-container">
+          {trendingTopics.map((topic, index) => (
+            <button
+              key={index}
+              onMouseEnter={() => setHovered(index)}
+              onMouseLeave={() => setHovered(null)}
+              onClick={() => navigate(`/topics/${encodeURIComponent(topic)}`)}
+              className={`trending-box ${hovered === index ? "hovered" : ""}`}
+            >
+              <div className="trending-box-content">
+                <div className="trending-badge">
+                  <span className="trending-label">Trending</span>
+                </div>
+                <div className="trending-topic-title">{topic}</div>
+              </div>
+            </button>
+          ))}
+        </div>
       </aside>
 
       <main className="home-main">
@@ -90,7 +102,7 @@ const Home = () => {
         </div>
 
         {/* 3. Simple US Map Placeholder (Feature 3) */}
-        <div style={{padding: "5px"}} className="dashboard-item map-container">
+        <div style={{ padding: "5px" }} className="dashboard-item map-container">
           <Map />
         </div>
       </main>
