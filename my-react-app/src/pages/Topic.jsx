@@ -6,7 +6,7 @@ import "./Topic.css";
 const Topic = () => {
   const { topicName } = useParams();
   const location = useLocation();
-  const { trendingIndex, trendingTopics } = location.state || { trendingIndex: 1, trendingTopics: [] };
+  const { trendingIndex, trendingTopics, region } = location.state || { trendingIndex: 1, trendingTopics: [] };
   const decodedTopic = decodeURIComponent(topicName);
   const navigate = useNavigate();
 
@@ -31,9 +31,9 @@ const Topic = () => {
   useEffect(() => {
     const loadCSV = async () => {
       try {
-        const response = await fetch('/tmobile_reviews_labeled.csv');
+        const response = await fetch('/filtered_data.csv');
         if (!response.ok) {
-          console.error('CSV error:', response.status, response.statusText);
+          console.error('Filtered CSV not found:', response.status, response.statusText);
           return;
         }
         const csvText = await response.text();
@@ -44,7 +44,7 @@ const Topic = () => {
           transformHeader: (h) => h.trim().toLowerCase(),
           complete: (results) => {
             const cleanedPosts = results.data
-              .filter(post => post && post.text && post.text.trim() !== '' && post.topic_name)
+              .filter(post => post && post.text && post.text.trim() !== '')
               .sort((a, b) => new Date(b.date) - new Date(a.date));
 
             setPosts(cleanedPosts);
@@ -61,9 +61,10 @@ const Topic = () => {
     loadCSV();
   }, []);
 
-  //Filter and sort posts
+  // Filter and sort posts
   const filteredPosts = posts
     .filter(post => post.topic_name.toLowerCase() === decodedTopic.toLowerCase())
+    .filter(post => region ? post.region && post.region.toLowerCase() === region.toLowerCase() : true) // Filter by region if provided
     .filter(post => sentimentFilter[post.sentiment?.toLowerCase()] ?? true)
     .sort((a, b) => {
       if (sortKey === "likes") {
@@ -120,25 +121,24 @@ const Topic = () => {
                   checked={sentimentFilter.positive}
                   onChange={() => handleSentimentChange("positive")}
                 />
-                  Positive Sentiment
+                Positive Sentiment
               </label>
-            <label>
-          <input
-            type="checkbox"
-            checked={sentimentFilter.negative}
-            onChange={() => handleSentimentChange("negative")}
-          />
-          Negative Sentiment
-        </label>
-        </div>
-
+              <label>
+                <input
+                  type="checkbox"
+                  checked={sentimentFilter.negative}
+                  onChange={() => handleSentimentChange("negative")}
+                />
+                Negative Sentiment
+              </label>
+            </div>
           </div>
         </div>
 
         <div className="dashboard-content">
           <div className="dashboard-top-row">
             <div className="satisfaction-gauge">
-              {/*Add satisfaction gauge */}
+              {/* Add satisfaction gauge */}
             </div>
 
             <div
@@ -162,7 +162,7 @@ const Topic = () => {
           </div>
 
           <div className="chat-section">
-            {/*chat here */}
+            {/* Chat section here */}
           </div>
         </div>
       </div>
