@@ -6,56 +6,63 @@ import Map from "../components/map";
 
 const Home = () => {
   const [hovered, setHovered] = useState(null);
-  const [gaugePercent, setGaugePercent] = useState(0); // State for animation
+  const [gaugePercent, setGaugePercent] = useState(0);
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
 
-  // Use useEffect to trigger the gauge animation after component mounts
-  useEffect(() => {
-    // The target percentage is 90.8%
-    const targetPercent = 90.8;
-    setGaugePercent(targetPercent);
-  }, []);
-
-  // Function to calculate the stroke-dashoffset for the gauge animation
-  const getGaugeOffset = (percent) => {
-    const circumference = 282.74; // Calculated for r=45 (2 * pi * 45)
-    // The offset is the *unfilled* part of the circle
-    return circumference * (1 - (percent / 100));
+  const getGaugeOffset = (percent) => { 
+    const circumference = 282.74; 
+    return circumference * (1 - (percent / 100)); 
   };
 
   useEffect(() => {
-    const loadCSV = async () => {
-      try {
-        const response = await fetch('filtered_data.csv');
-        if (!response.ok) {
-          console.error('CSV error:', response.status, response.statusText);
-          return;
-        }
-        const csvText = await response.text();
-
-        Papa.parse(csvText, {
-          header: true,
-          skipEmptyLines: true,
-          transformHeader: (h) => h.trim().toLowerCase(),
-          complete: (results) => {
-            const cleanedPosts = results.data
-              .filter(post => post && post.text && post.text.trim() !== '' && post.topic_name)
-              .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            setPosts(cleanedPosts);
-          },
-          error: (error) => {
-            console.error('Error parsing CSV:', error);
-          }
-        });
-      } catch (error) {
-        console.error('Error loading CSV:', error);
+  const loadCSV = async () => {
+    try {
+      const response = await fetch('filtered_data.csv', { cache: 'no-store' });
+      if (!response.ok) {
+        console.error('CSV error:', response.status, response.statusText);
+        return;
       }
-    };
+      const csvText = await response.text();
 
-    loadCSV();
-  }, []);
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (h) => h.trim().toLowerCase(),
+        complete: (results) => {
+          const cleanedPosts = results.data
+            .filter(post => post && post.text && post.text.trim() !== '' && post.topic_name)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          setPosts(cleanedPosts);
+
+          const total = cleanedPosts.length;
+          const positiveCount = cleanedPosts.filter(p => p.sentiment?.toLowerCase() === 'positive').length;
+          const percentPositive = total > 0 ? (positiveCount / total) * 100 : 0;
+
+          setGaugePercent(percentPositive);
+        },
+        error: (error) => {
+          console.error('Error parsing CSV:', error);
+        }
+      });
+    } catch (error) {
+      console.error('Error loading CSV:', error);
+    }
+  };
+
+  // Initial load
+  loadCSV();
+
+  // Refresh every 5 seconds
+  const interval = setInterval(loadCSV, 500);
+
+  // Cleanup interval when component unmounts
+  return () => clearInterval(interval);
+}, []);
+
+
+
 
   const trendingTopics = React.useMemo(() => {
     // 1. Create an object to hold the counts
@@ -134,14 +141,13 @@ const Home = () => {
 
         {/* 2. Animated Percentage Gauge (Feature 1) */}
         <div className="dashboard-item gauge-container">
-          <p style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>Satisfaction Rate - Jun 2023</p>
+          <p style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>Satisfaction Rate</p>
           <svg width="150" height="150" viewBox="0 0 100 100">
-            {/* Background Arc - Grey */}
             <circle
               cx="50" cy="50" r="45"
               fill="none" stroke="#eee" strokeWidth="10"
-              strokeDasharray="141.37px 282.74px" /* 50% of circle */
-              transform="rotate(-225 50 50)" /* Start from bottom-left */
+              strokeDasharray="210px" 
+              transform="rotate(-225 50 50)"
             />
 
             {/* Foreground Arc - Green (Animated) */}
@@ -154,7 +160,7 @@ const Home = () => {
                 transition: 'stroke-dashoffset 2s ease-out', // Smooth transition for animation
                 transform: 'rotate(-225deg)', // Start from bottom-left, same as background
                 transformOrigin: '50% 50%',
-                strokeDasharray: '282.74px', // Full circumference
+                strokeDasharray: "282.74px"
               }}
             />
             <text x="50" y="60" textAnchor="middle" fontSize="16" fontWeight="bold" fill="#222">{gaugePercent.toFixed(1)}%</text>
