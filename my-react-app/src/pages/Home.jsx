@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Papa from 'papaparse';
 import "./Home.css";
 import Map from "../components/map";
+import TrendingChart from "../components/TrendingChart";
 
 const Home = () => {
   const [hovered, setHovered] = useState(null);
@@ -10,56 +11,58 @@ const Home = () => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
 
-  const getGaugeOffset = (percent) => { 
-    const circumference = 282.74; 
-    return circumference * (1 - (percent / 100)); 
-  };
-
-  useEffect(() => {
   const loadCSV = async () => {
     try {
-      const response = await fetch('filtered_data.csv', { cache: 'no-store' });
+      const response = await fetch("filtered_data.csv", { cache: "no-store" });
       if (!response.ok) {
-        console.error('CSV error:', response.status, response.statusText);
+        console.error("CSV error:", response.status, response.statusText);
         return;
       }
-      const csvText = await response.text();
 
+      const csvText = await response.text();
       Papa.parse(csvText, {
         header: true,
         skipEmptyLines: true,
         transformHeader: (h) => h.trim().toLowerCase(),
         complete: (results) => {
           const cleanedPosts = results.data
-            .filter(post => post && post.text && post.text.trim() !== '' && post.topic_name)
+            .filter(
+              (post) =>
+                post && post.text && post.text.trim() !== "" && post.topic_name
+            )
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
           setPosts(cleanedPosts);
 
           const total = cleanedPosts.length;
-          const positiveCount = cleanedPosts.filter(p => p.sentiment?.toLowerCase() === 'positive').length;
-          const percentPositive = total > 0 ? (positiveCount / total) * 100 : 0;
+          const positiveCount = cleanedPosts.filter(
+            (p) => p.sentiment?.toLowerCase() === "positive"
+          ).length;
+          const percentPositive =
+            total > 0 ? (positiveCount / total) * 500 : 0;
 
           setGaugePercent(percentPositive);
         },
         error: (error) => {
-          console.error('Error parsing CSV:', error);
-        }
+          console.error("Error parsing CSV:", error);
+        },
       });
     } catch (error) {
-      console.error('Error loading CSV:', error);
+      console.error("Error loading CSV:", error);
     }
   };
 
-  loadCSV();
-
-  const interval = setInterval(loadCSV, 500);
-
-  return () => clearInterval(interval);
-}, []);
+  useEffect(() => {
+    loadCSV();
+  }, []);
 
 
-
+  // Function to calculate the stroke-dashoffset for the gauge animation
+  const getGaugeOffset = (percent) => {
+    const circumference = 282.74; // Calculated for r=45 (2 * pi * 45)
+    // The offset is the *unfilled* part of the circle
+    return circumference * (1 - (percent / 100));
+  };
 
   const trendingTopics = React.useMemo(() => {
     const topicCounts = {};
@@ -86,32 +89,44 @@ const Home = () => {
   return (
     <div className="home-body">
       <aside className="home-sidebar">
-        {trendingTopics.map((topic, index) => (
-          <button
-            key={index}
-            onMouseEnter={() => setHovered(index)}
-            onMouseLeave={() => setHovered(null)}
+        <div className="sidebar-header">
+          <div className="sidebar-branding">
+            <span className="sidebar-tmobile-text">T - Mobile</span>
+            <span className="sidebar-dashboard-text">Dashboard</span>
+          </div>
+          <div className="sidebar-powered-by">Powered By NVIDIA</div>
+        </div>
+        <div className="trending-topics-container">
+          {trendingTopics.map((topic, index) => (
+            <button
+              key={index}
+              onMouseEnter={() => setHovered(index)}
+              onMouseLeave={() => setHovered(null)}
 
-            onClick={() => navigate(`/topics/${encodeURIComponent(topic.topic_name)}`)}
-            className={`trending-box ${hovered === index ? "hovered" : ""}`}
-          >
-            <div style={{ fontWeight: 'normal', opacity: 0.7 }}>{index + 1} - Trending</div>
-            <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{topic.topic_name}</div>
-          </button>
-        ))}
+              onClick={() => navigate(`/topics/${encodeURIComponent(topic.topic_name)}`)}
+              className={`trending-box ${hovered === index ? "hovered" : ""}`}
+            >
+              <div className="trending-box-content">
+                <div className="trending-badge">
+                  <span className="trending-label">{index + 1} - Trending</span>
+                </div>
+                <div className="trending-topic-title">{topic.topic_name}</div>
+              </div>
+            </button>
+          ))}
+        </div>
       </aside>
 
       <main className="home-main">
 
         <div className="dashboard-item chart-container">
-          <p style={{ marginBottom: 'auto', fontWeight: 'bold' }}>Line Chart Data (2014 - 2020)</p>
-          <div style={{ width: '100%', height: '80%', backgroundColor: '#f0f0f0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          </div>
+          <p style={{ fontWeight: "bold" }}>Trend Frequency by Topic</p>
+          <TrendingChart posts={posts} />
         </div>
 
-        <div className="dashboard-item gauge-container">
-          <p style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>Satisfaction Rate</p>
-          <svg width="150" height="150" viewBox="0 0 100 100">
+         <div className="dashboard-item gauge-container">
+           <p style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>Satisfaction Rate</p>
+           <svg width="150" height="150" viewBox="0 0 100 100">
 
             <circle
               cx="50" cy="50" r="45"
@@ -129,8 +144,18 @@ const Home = () => {
           </svg>
         </div>
 
-        <div style={{padding: "5px"}} className="dashboard-item map-container">
-          <Map />
+        <div
+          style={{
+            padding: "5px",
+            margin: "5px",
+            position: "relative",
+            height: "100px",
+            width: "100%",
+            left: "30%",
+            bottom: "10px"
+          }}
+        >
+          <Map loadCSV={loadCSV} />
         </div>
       </main>
     </div>

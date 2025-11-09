@@ -18,7 +18,7 @@ const buttons = [
   { id: 4, region: "Northeast", top: "30%", left: "80%", size: "8%", color: "grey" },
 ];
 
-const Map = ({ onRegionSelect }) => {
+const Map = ({ onRegionSelect, loadCSV }) => {
   const [activeButton, setActiveButton] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -43,6 +43,8 @@ const Map = ({ onRegionSelect }) => {
       if (onRegionSelect) {
         onRegionSelect(region);
       }
+
+      loadCSV();
     } catch (err) {
       console.error("Failed to filter data:", err);
       setError(err.message);

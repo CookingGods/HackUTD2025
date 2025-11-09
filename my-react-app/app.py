@@ -15,16 +15,12 @@ if isinstance(client, str):
     print(client)
     exit()
 
-mock_data = {
-    "complaints": [
-        {"id": 101, "region": "NY", "text": "My 5G connection keeps dropping in midtown."},
-        {"id": 102, "region": "CA", "text": "I was overcharged on my bill and customer service was no help."},
-        {"id": 103, "region": "TX", "text": "Calls sound muffled and drop frequently in the Austin area."},
-        {"id": 104, "region": "NY", "text": "Billing is confusing. Why do I have so many random fees?"},
-        {"id": 105, "region": "CA", "text": "Network is fine, but the bill is a nightmare to read."}
-    ]
-}
-data_string = json.dumps(mock_data, indent=2)
+
+with open('../tmobile_reviews_labeled.csv', 'r', encoding='utf-8') as f:
+    csv_data = f.read()
+
+data_string = json.dumps(csv_data, indent=2)
+
 system_prompt = (
     "You are a T-Mobile internal assistant designed to assist T-Mobile "
     "use customer feedback to produce actionable insight. "
