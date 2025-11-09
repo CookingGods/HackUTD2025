@@ -3,6 +3,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from chatbot import get_client, get_chat_response
+import pandas as pd
+import os
 
 load_dotenv()
 
@@ -12,8 +14,6 @@ client = get_client()
 if isinstance(client, str):
     print(client)
     exit()
-
-print("NVIDIA client initialized successfully.")
 
 mock_data = {
     "complaints": [
@@ -35,6 +35,132 @@ system_prompt = (
     "All responses should be at short and concise and be at most 3 sentences."
 )
 
+REGIONS = {
+    "South": ["LA", "FL", "OK", "TX", "GA", "AR"],
+    "Midwest": ["IL", "MI", "OH", "IN", "WI", "MN"],
+    "West": ["NV", "CA", "AZ", "WA", "OR"],
+    "Northeast": ["NY", "PA", "NJ", "MA", "CT"]
+}
+
+def filter_and_save_by_region(region_name, 
+                             input_file='tmobile_reviews_labeled.csv', 
+                             output_file='filtered_data.csv'):
+    """
+    Filters the main CSV file by a defined region and saves the result.
+    RAISES an exception if something goes wrong.
+    """
+    # Load the full dataset (can raise FileNotFoundError)
+    df = pd.read_csv(input_file)
+    
+    # --- START: ADDED DATA CLEANING ---
+    
+    # 1. Check if 'Location' column even exists
+    if 'location' not in df.columns:
+        raise KeyError("The CSV file is missing the 'location' column.")
+        
+    # 2. Silently drop/skip rows that have no Location data
+    df.dropna(subset=['location'], inplace=True)
+    
+    # 3. Force the Location column to be a string to prevent errors
+    #    This will handle numbers or other non-string data.
+    #    The .str.split().str[1] part will now safely return 'None'
+    #    for malformed strings (e.g., "Chicago"), which get skipped later.
+    df['state'] = df['location'].astype(str).str.split(', ').str[1]
+    
+    # --- END: ADDED DATA CLEANING ---
+
+    
+    # Get the list of states for the requested region
+    states_to_filter = REGIONS.get(region_name)
+    
+    if not states_to_filter:
+        # If the region is unknown, raise a ValueError
+        raise ValueError(f"Region '{region_name}' not found in REGIONS map.")
+    
+    # Filter the DataFrame
+    # Rows where 'State' is None (from "Chicago" or "123")
+    # will not be in 'states_to_filter' and are automatically skipped.
+    filtered_df = df[df['state'].isin(states_to_filter)].copy()
+    
+    # Save the filtered data (can raise PermissionError)
+    filtered_df.to_csv(output_file, index=False)
+    
+    # Return a success message
+    return f"Filtered for {region_name}. Found {len(filtered_df)} records."
+
+
+
+@app.route('/filter', methods=['POST', 'GET'])
+def handle_filter_request():
+    """
+    This endpoint is triggered by your 'filter' button.
+    It expects a 'region' parameter (e.g., 'South', 'Midwest').
+    """
+    region_name = request.args.get('region')
+    
+    if not region_name:
+        return jsonify({"status": "error", "message": "No 'region' parameter provided."}), 400
+        
+    try:
+        # Run the main filtering function
+        message = filter_and_save_by_region(region_name)
+        
+        # If it returns without error, it was a success
+        return jsonify({"status": "success", "message": message})
+        
+    except FileNotFoundError as e:
+        # The 'tmobile_reviews_labeled.csv' wasn't found
+        print(f"ERROR: File not found: {e}") # For your console
+        return jsonify({"status": "error", "message": f"Data file not found: {e.filename}"}), 404
+        
+    except KeyError as e:
+        # This will catch the "Missing 'Location' column" error
+        print(f"ERROR: CSV data is missing a required column: {e}") # For your console
+        return jsonify({"status": "error", "message": f"CSV data error. Missing required column: {e}"}), 400
+
+    except ValueError as e:
+        # This will catch the "Region not found" error we raised
+        print(f"ERROR: Value error: {e}") # For your console
+        return jsonify({"status": "error", "message": str(e)}), 400
+
+    except PermissionError as e:
+        # The app doesn't have rights to write 'filtered_data.csv'
+        print(f"ERROR: Permission denied: {e}") # For your console
+        return jsonify({"status": "error", "message": f"Server permission error: Cannot write file. {e}"}), 500
+        
+    except Exception as e:
+        # The REAL "catch-all" for any other unexpected crash
+        print(f"ERROR: An unexpected server error occurred: {e}") # For your console
+        return jsonify({"status": "error", "message": f"An unexpected server error occurred: {e}"}), 500
+    
+
+
+
+@app.route('/get-filtered-data', methods=['GET'])
+def get_filtered_data_for_graphs():
+    """
+    This endpoint reads the 'filtered_data.csv' file and returns
+    its contents as JSON, ready to be used by charts.
+    """
+    try:
+        # Read the pre-filtered data
+        df = pd.read_csv('filtered_data.csv')
+        
+        # Convert the DataFrame to JSON in an 'records' orientation
+        # (a list of objects), which is great for charting libraries.
+        data_json = df.to_json(orient='records')
+        
+        # We parse the JSON string back into an object to return clean JSON
+        import json
+        return jsonify(json.loads(data_json))
+        
+    except FileNotFoundError:
+        # This happens if /filter hasn't been called yet
+        return jsonify({"error": "No filtered data found. Please select a region first."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     if isinstance(client, str):
@@ -55,6 +181,7 @@ def chat():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
+import Map from "../components/map";
 
 const Home = () => {
   const [hovered, setHovered] = useState(null);
@@ -89,12 +90,8 @@ const Home = () => {
         </div>
 
         {/* 3. Simple US Map Placeholder (Feature 3) */}
-        <div className="dashboard-item map-container">
-          <p className="map-title">United States of America</p>
-          <div className="simple-us-map">
-            {/* Simple Map Placeholder (Solid Pink Block as requested) */}
-            <span style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold', opacity: 0.5 }}>U.S. Map Placeholder</span>
-          </div>
+        <div style={{padding: "5px"}} className="dashboard-item map-container">
+          <Map />
         </div>
       </main>
     </div>
