@@ -10,7 +10,6 @@
   object-fit: contain;
 }
 
-
 .map-button {
   position: absolute;
   border: none;
@@ -21,7 +20,7 @@
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.map-button:hover {
+.hover-effect:hover {
   opacity: 1;
   transform: scale(1.1);
 }

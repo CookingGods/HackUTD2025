@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Papa from 'papaparse';
 import "./Home.css";
 import Map from "../components/map";
 
@@ -7,6 +8,7 @@ const Home = () => {
   const [hovered, setHovered] = useState(null);
   const [gaugePercent, setGaugePercent] = useState(0); // State for animation
   const navigate = useNavigate();
+  const [posts, setPosts] = useState([]);
 
   // Use useEffect to trigger the gauge animation after component mounts
   useEffect(() => {
@@ -22,15 +24,80 @@ const Home = () => {
     return circumference * (1 - (percent / 100));
   };
 
-  const trendingTopics = [
-    "Newest Bug",
-    "Cost of Product",
-    "Best Phone for T-Mobile",
-    "Lowest Cost Plan",
-    "2025 vs 2024 Phone",
-    "School not allowing school",
-    "Lowest Plan",
-  ];
+  useEffect(() => {
+    const loadCSV = async () => {
+      try {
+        const response = await fetch('filtered_data.csv');
+        if (!response.ok) {
+          console.error('CSV error:', response.status, response.statusText);
+          return;
+        }
+        const csvText = await response.text();
+
+        Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          transformHeader: (h) => h.trim().toLowerCase(),
+          complete: (results) => {
+            const cleanedPosts = results.data
+              .filter(post => post && post.text && post.text.trim() !== '' && post.topic_name)
+              .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            setPosts(cleanedPosts);
+          },
+          error: (error) => {
+            console.error('Error parsing CSV:', error);
+          }
+        });
+      } catch (error) {
+        console.error('Error loading CSV:', error);
+      }
+    };
+
+    loadCSV();
+  }, []);
+
+  const trendingTopics = React.useMemo(() => {
+    // 1. Create an object to hold the counts
+    const topicCounts = {};
+
+    // 2. Loop over all posts and count by topic_name
+    for (const post of posts) {
+      const topicId = post.topic_name; // Your parser makes this lowercase
+      
+      if (topicId) {
+        // Add to the count for this topic_name, or initialize it to 1
+        topicCounts[topicId] = (topicCounts[topicId] || 0) + 1;
+      }
+    }
+
+    // 3. Convert the counts object into an array
+    // From: { topic_A: 10, topic_B: 5 }
+    // To: [ ['topic_A', 10], ['topic_B', 5] ]
+    const countsArray = Object.entries(topicCounts);
+
+    // 4. Sort the array by count (the second item, index 1) in descending order
+    countsArray.sort((a, b) => b[1] - a[1]);
+
+    // 5. (Optional) Map to a cleaner object format
+    // From: [ ['topic_A', 10], ['topic_B', 5] ]
+    // To: [ {topic_name: 'topic_A', count: 10}, {topic_name: 'topic_B', count: 5} ]
+    return countsArray.map(([topic_name, count]) => ({
+      topic_name: topic_name,
+      count: count
+    }));
+
+  }, [posts]);
+
+  // const trendingTopics = [
+  //   "Newest Bug",
+  //   "Cost of Product",
+  //   "Best Phone for T-Mobile",
+  //   "Lowest Cost Plan",
+  //   "2025 vs 2024 Phone",
+  //   "School not allowing school",
+  //   "Lowest Plan",
+  // ];
 
   return (
     <div className="home-body">
@@ -40,12 +107,17 @@ const Home = () => {
             key={index}
             onMouseEnter={() => setHovered(index)}
             onMouseLeave={() => setHovered(null)}
-            onClick={() => navigate(`/topics/${encodeURIComponent(topic)}`)}
+            // FIX 1: Use topic.topic_name for the navigation URL
+            onClick={() => navigate(`/topics/${encodeURIComponent(topic.topic_name)}`)}
             className={`trending-box ${hovered === index ? "hovered" : ""}`}
           >
-            {/* Added index and "Trending" text */}
             <div style={{ fontWeight: 'normal', opacity: 0.7 }}>{index + 1} - Trending</div>
-            <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{topic}</div>
+            
+            {/* FIX 2: Render the topic_name property, not the whole object */}
+            <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{topic.topic_name}</div>
+
+            {/* Optional: You could also show the count */}
+            {/* <div style={{ opacity: 0.8 }}>Count: {topic.count}</div> */}
           </button>
         ))}
       </aside>
