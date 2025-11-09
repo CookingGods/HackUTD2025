@@ -7,10 +7,15 @@ const Header = () => {
             <div className="header-content">
                 {/* Placeholder for left-side content */}
                 <div className="header-left"></div>
-                {/* T-Mobile Logo Placeholder on the right */}
+                {/* T-Mobile Logo and branding in the corner */}
                 <div className="header-logo">
-                    {/* Replace this <span> with an actual T-Mobile logo image */}
-                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#e20074' }}>T-Mobile Dashboard</span>
+                    <div className="header-branding">
+                        <div className="header-title">
+                            <span className="tmobile-text">T-Mobile</span>
+                            <span className="dashboard-text">Dashboard</span>
+                        </div>
+                        <div className="powered-by-text">Powered By NVIDIA</div>
+                    </div>
                 </div>
             </div>
         </header>

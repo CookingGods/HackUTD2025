@@ -1,7 +1,6 @@
 import './App.css'
 import Home from "./pages/Home.jsx";
 import Topic from "./pages/Topic.jsx";
-import Header from "./components/Header.jsx";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {

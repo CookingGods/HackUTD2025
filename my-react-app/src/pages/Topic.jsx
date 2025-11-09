@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Papa from 'papaparse';
 import "./Topic.css";
 
@@ -9,24 +9,14 @@ const Topic = () => {
   const { trendingIndex, trendingTopics, region } = location.state || { trendingIndex: 1, trendingTopics: [] };
   const decodedTopic = decodeURIComponent(topicName);
   const navigate = useNavigate();
-
+  const [activeFilter, setActiveFilter] = useState('Sentiment');
+  const [gaugePercent, setGaugePercent] = useState(0);
   const [posts, setPosts] = useState([]);
-  const [sortKey, setSortKey] = useState("newest"); 
-  const [sentimentFilter, setSentimentFilter] = useState({
-    positive: true,
-    negative: true
-  });
+  const [loading, setLoading] = useState(true);
 
-  const handleBack = () => {
-    navigate(-1);
-  };
-
-  const handleSentimentChange = (type) => {
-    setSentimentFilter(prev => ({
-      ...prev,
-      [type]: !prev[type]
-    }));
-  };
+  useEffect(() => {
+    setGaugePercent(90.8);
+  }, []);
 
   useEffect(() => {
     const loadCSV = async () => {
@@ -40,8 +30,6 @@ const Topic = () => {
 
         Papa.parse(csvText, {
           header: true,
-          skipEmptyLines: true,
-          transformHeader: (h) => h.trim().toLowerCase(),
           complete: (results) => {
             const cleanedPosts = results.data
               .filter(post => post && post.text && post.text.trim() !== '')
@@ -51,10 +39,12 @@ const Topic = () => {
           },
           error: (error) => {
             console.error('Error parsing CSV:', error);
+            setLoading(false);
           }
         });
       } catch (error) {
         console.error('Error loading CSV:', error);
+        setLoading(false);
       }
     };
 
@@ -78,29 +68,51 @@ const Topic = () => {
 
   return (
     <div className="topic-container">
+      {/* Left Bubbles Container */}
       <div className="bubbles-container">
-        {filteredPosts.length > 0 ? (
-          filteredPosts.map((post, index) => (
-            <div key={index} className="bubble">
-              <div className="bubble-source">
-                {post.url?.toLowerCase().includes("reddit") && (
-                  <img src="/src/Logos/reddit_logo.png" alt="Reddit Logo" />
-                )}
-              </div>
-              <p className="bubble-text">{post.text}</p>
-              <span className="bubble-date">
-                {new Date(post.date).toLocaleDateString()}
-              </span>
-            </div>
-          ))
+        {loading ? (
+          <div>Loading posts...</div>
+        ) : filteredPosts.length === 0 ? (
+          <div>No posts found for "{decodedTopic}"</div>
         ) : (
-          <p>No posts found for this topic.</p>
+          filteredPosts.map((post, index) => {
+            const source = getSource(post);
+            const displayText = getDisplayText(post);
+            const postTitle = post.title || decodedTopic;
+            const postDate = post.date || '';
+
+            return (
+              <div key={index} className="bubble">
+                <div className="bubble-source">
+                  {source === 'reddit' || source === 'reddit_text' ? (
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" fill="#FF4500" />
+                      <circle cx="9" cy="10" r="1.5" fill="#fff" />
+                      <circle cx="15" cy="10" r="1.5" fill="#fff" />
+                      <path d="M12 14c-2 0-3.5 1-3.5 2.5 0 1.5 1.5 2.5 3.5 2.5s3.5-1 3.5-2.5c0-1.5-1.5-2.5-3.5-2.5z" fill="#fff" />
+                    </svg>
+                  ) : (
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="#000000" />
+                    </svg>
+                  )}
+                </div>
+                <div className="bubble-title">{postTitle}</div>
+                <div className="bubble-text">{displayText}</div>
+                {postDate && <div className="bubble-date">{postDate}</div>}
+              </div>
+            );
+          })
         )}
       </div>
 
+      {/* Right Dashboard Container */}
       <div className="dashboard-container">
+        {/* Dashboard Header with Back Button and Filters */}
         <div className="dashboard-header">
-          <button className="back-button" onClick={handleBack}>←</button>
+          <button className="back-button" onClick={handleBack}>
+            ←
+          </button>
           <div className="filter-buttons">
             <button
               className={`filter-btn ${sortKey === "likes" ? "active" : ""}`}
@@ -135,32 +147,23 @@ const Topic = () => {
           </div>
         </div>
 
+        {/* Dashboard Content */}
         <div className="dashboard-content">
+          {/* Top Row with Satisfaction Gauge and Trending Section */}
           <div className="dashboard-top-row">
+            {/* Satisfaction Gauge */}
             <div className="satisfaction-gauge">
               {/* Add satisfaction gauge */}
             </div>
 
-            <div
-              className="trending-section"
-              onClick={() => {
-                const nextIndex = (trendingIndex % trendingTopics.length) + 1;
-                const nextTopic = trendingTopics[nextIndex - 1];
-                if (nextTopic) {
-                  navigate(`/topics/${encodeURIComponent(nextTopic)}`, {
-                    state: {
-                      trendingIndex: nextIndex,
-                      trendingTopics
-                    }
-                  });
-                }
-              }}
-            >
-              <span className="trending-label">{trendingIndex} - Trending</span>
+            {/* Trending Section */}
+            <div className="trending-section">
+              <span className="trending-label">{trendingNumber} - Trending</span>
               <h2 className="trending-title">{decodedTopic}</h2>
             </div>
           </div>
 
+          {/* Chat Section */}
           <div className="chat-section">
             {/* Chat section here */}
           </div>
