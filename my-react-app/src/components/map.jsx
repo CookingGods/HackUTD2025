@@ -1,29 +1,38 @@
-import React from "react";
+
+import React, { useState } from "react";
 import mapImage from "../assets/map.png";
+import "./Map.css";
 
 const Map = () => {
-  // You can define each button’s position, size, and color in an array
+  const [activeButton, setActiveButton] = useState(null);
+
   const buttons = [
-    { id: 1, top: "30%", left: "40%", size: "w-8 h-8", color: "bg-red-500" },
-    { id: 2, top: "60%", left: "20%", size: "w-12 h-12", color: "bg-blue-500" },
-    { id: 3, top: "50%", left: "70%", size: "w-6 h-6", color: "bg-green-500" },
+    { id: 1, top: "30%", left: "40%", size: "10%", color: "grey" },
+    { id: 2, top: "50%", left: "10%", size: "12%", color: "grey" },
+    { id: 3, top: "55%", left: "60%", size: "18%", color: "grey" },
+    { id: 3, top: "30%", left: "80%", size: "8%", color: "grey" },
   ];
 
+  const handleClick = (id) => {
+    setActiveButton(id); // set the clicked one active
+  };
+
   return (
-    <div className="relative inline-block">
-      <img
-        src={mapImage}
-        alt="Map"
-        loading="lazy"
-        className="block w-full h-auto"
-      />
+    <div className="map-container">
+      <img src={mapImage} alt="Map" className="map-image" loading="lazy" />
 
       {buttons.map((btn) => (
         <button
           key={btn.id}
-          className={`absolute rounded-full ${btn.color} ${btn.size} opacity-80 hover:color-pink`}
-          style={{ top: btn.top, left: btn.left }}
-          onClick={() => alert(`Clicked button ${btn.id}`)}
+          className="map-button"
+          style={{
+            top: btn.top,
+            left: btn.left,
+            width: btn.size,
+            height: btn.size,
+            backgroundColor: activeButton === btn.id ? "pink" : btn.color,
+          }}
+          onClick={() => handleClick(btn.id)}
         />
       ))}
     </div>
