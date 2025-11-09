@@ -14,8 +14,8 @@ import re
 
 # --- Reddit Setup ---
 reddit = praw.Reddit(
-    client_id="mqkOL3-DbJ_5uVhra1800w",
-    client_secret="o3hE3BIuHuMIMn3SXFFXIGULDY3qjQ",
+    client_id="",
+    client_secret="",
     user_agent="my_tmobile_sentiment_scraper"
 )
 
