@@ -8,9 +8,9 @@ const Map = () => {
 
   const buttons = [
     { id: 1, top: "30%", left: "40%", size: "10%", color: "grey" },
-    { id: 2, top: "50%", left: "10%", size: "12%", color: "grey" },
-    { id: 3, top: "55%", left: "60%", size: "18%", color: "grey" },
-    { id: 3, top: "30%", left: "80%", size: "8%", color: "grey" },
+    { id: 2, top: "45%", left: "10%", size: "12%", color: "grey" },
+    { id: 3, top: "50%", left: "60%", size: "16%", color: "grey" },
+    { id: 4, top: "30%", left: "80%", size: "8%", color: "grey" },
   ];
 
   const handleClick = (id) => {
@@ -29,8 +29,7 @@ const Map = () => {
             top: btn.top,
             left: btn.left,
             width: btn.size,
-            height: btn.size,
-            backgroundColor: activeButton === btn.id ? "pink" : btn.color,
+            backgroundColor: activeButton === btn.id ? "magenta" : btn.color,
           }}
           onClick={() => handleClick(btn.id)}
         />
