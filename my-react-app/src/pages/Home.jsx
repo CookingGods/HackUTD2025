@@ -7,8 +7,8 @@ const Home = () => {
   const navigate = useNavigate();
 
   const trendingTopics = [
-    "Weeks",
-    "Deal",
+    "coverage",
+    "Billing",
     "Best Phone for T-Mobile",
     "Lowest Cost Plan",
     "2025 vs 2024 Phone",
@@ -24,7 +24,12 @@ const Home = () => {
             key={index}
             onMouseEnter={() => setHovered(index)}
             onMouseLeave={() => setHovered(null)}
-            onClick={() => navigate(`/topics/${encodeURIComponent(topic)}`)}
+            onClick={() => navigate(`/topics/${encodeURIComponent(topic)}`, { 
+              state: { 
+                trendingIndex: index + 1,
+                trendingTopics: trendingTopics 
+              }
+            })}
             className={`trending-box ${hovered === index ? "hovered" : ""}`}
           >
             {topic}
