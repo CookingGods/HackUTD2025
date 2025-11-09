@@ -217,45 +217,88 @@ def process_csv_locations(input_file: str, output_file: str):
     df.to_csv(output_file, index=False)
     print("✅ Done.")
 
+def get_dates_from_text(date: str) -> str | None:
+    system_prompt = (
+        "You are an expert entity extraction system. "
+        "Your task is to read the user's text and reply with *only* the specific date mentioned in the format month/day/year like 11/9/2025. "
+        "If no date is mentioned, you MUST reply with the single word: N/A."
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model="qwen/qwen3-next-80b-a3b-instruct",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": date}
+            ],
+            temperature=0.0,
+            max_tokens=50
+        )
+
+        result = response.choices[0].message.content.strip()
+
+        if result.lower() in ['n/a', 'none', '']:
+            return None
+
+        return result.replace('"', '').replace("'", "")
+
+    except Exception as e:
+        print(f"[API Error: {e}]")
+        return None
+
+
 if __name__ == "__main__":
-    api_key = os.getenv("NVIDIA_API_KEY")
-    base_url = "https://integrate.api.nvidia.com/v1"
+    tqdm.pandas()
 
-    reviews = pd.read_csv("combined_data_with_locations.csv")
-    reviews = reviews.dropna(subset=['text'])
-    reviews = reviews.reset_index(drop=True)
-    texts = reviews["text"].tolist()
+    df = pd.read_csv("tmobile_reviews_labeled.csv")
 
-    embs = []
-    batch_size = 16
-    headers = {"Authorization": f"Bearer {api_key}"}
+    # Apply your function to the date column with a progress bar
+    df["date"] = df["date"].progress_apply(lambda x: get_dates_from_text(str(x)))
 
-    for i in tqdm(range(0, len(texts), batch_size), desc="Generating Embeddings"):
-        batch = texts[i:i + batch_size]
-        payload = {
-            "model": "nvidia/llama-3.2-nemoretriever-300m-embed-v2",
-            "input": batch,
-            "input_type": "passage"
-        }
-        r = requests.post(f"{base_url}/embeddings", headers=headers, json=payload)
-        r.raise_for_status()
-        embs.extend([item["embedding"] for item in r.json()["data"]])
+    # Drop rows with no valid date
+    df = df.dropna(subset=["date"])
 
-    kmeans = KMeans(n_clusters=10, n_init=10, random_state=42)
-    topics = kmeans.fit_predict(embs)
+    # Save cleaned version (avoid overwriting original)
+    df.to_csv("tmobile_reviews_labeled_cleaned.csv", index=False)
 
-    topic_labels = {}
-    for i in set(topics):
-        cluster_texts = [texts[j] for j in range(len(texts)) if topics[j] == i]
-        topic_labels[i] = name_topic(cluster_texts)
+    # api_key = os.getenv("NVIDIA_API_KEY")
+    # base_url = "https://integrate.api.nvidia.com/v1"
+
+    # reviews = pd.read_csv("combined_data_with_locations.csv")
+    # reviews = reviews.dropna(subset=['text'])
+    # reviews = reviews.reset_index(drop=True)
+    # texts = reviews["text"].tolist()
+
+    # embs = []
+    # batch_size = 16
+    # headers = {"Authorization": f"Bearer {api_key}"}
+
+    # for i in tqdm(range(0, len(texts), batch_size), desc="Generating Embeddings"):
+    #     batch = texts[i:i + batch_size]
+    #     payload = {
+    #         "model": "nvidia/llama-3.2-nemoretriever-300m-embed-v2",
+    #         "input": batch,
+    #         "input_type": "passage"
+    #     }
+    #     r = requests.post(f"{base_url}/embeddings", headers=headers, json=payload)
+    #     r.raise_for_status()
+    #     embs.extend([item["embedding"] for item in r.json()["data"]])
+
+    # kmeans = KMeans(n_clusters=10, n_init=10, random_state=42)
+    # topics = kmeans.fit_predict(embs)
+
+    # topic_labels = {}
+    # for i in set(topics):
+    #     cluster_texts = [texts[j] for j in range(len(texts)) if topics[j] == i]
+    #     topic_labels[i] = name_topic(cluster_texts)
 
 
-    sentiments = [classify_sentiment(t) for t in tqdm(texts, desc="Classifying Sentiments")]
+    # sentiments = [classify_sentiment(t) for t in tqdm(texts, desc="Classifying Sentiments")]
 
-    reviews["topic_id"] = topics
-    reviews["topic_name"] = [topic_labels[t] for t in topics]
-    reviews["sentiment"] = sentiments
+    # reviews["topic_id"] = topics
+    # reviews["topic_name"] = [topic_labels[t] for t in topics]
+    # reviews["sentiment"] = sentiments
 
-    reviews.to_csv("tmobile_reviews_labeled.csv", index=False)
+    # reviews.to_csv("tmobile_reviews_labeled.csv", index=False)
 
-    print("✅ Processing complete! Saved to 'tmobile_reviews_labeled.csv'")
+    # print("✅ Processing complete! Saved to 'tmobile_reviews_labeled.csv'")
